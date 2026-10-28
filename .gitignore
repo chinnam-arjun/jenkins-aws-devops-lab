@@ -1,0 +1,18 @@
+# Dependencies (never commit this, it is too large)
+node_modules/
+
+# Environment variables (contains secret keys/passwords)
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build folder (if you use TypeScript or a bundler)
+dist/
+build/
