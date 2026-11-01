@@ -117,7 +117,7 @@ pipeline {
 
                             echo "Deployment completed successfully."
                             docker ps --filter "name=\$APP" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
-                        EOF
+EOF
                     """
                 }
             }
