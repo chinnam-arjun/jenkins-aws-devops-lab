@@ -11,6 +11,10 @@ pipeline {
     environment {
         IMAGE_NAME = 'jenkins-aws-docker-lab'
         CONTAINER_NAME = 'jenkins-ci-test'
+        DEPLOY_USER = 'jenkins'
+        DEPLOY_HOST = '18.215.162.184'
+        APP_PORT = '3000'
+        APP_NAME = 'node-cicd'
     }
 
     stages {
@@ -50,13 +54,13 @@ pipeline {
 
                     docker run -d \
                       --name ${CONTAINER_NAME} \
-                      -p 127.0.0.1:3000:3000 \
+                      -p 127.0.0.1:${APP_PORT}:${APP_PORT} \
                       ${IMAGE_NAME}:${BUILD_NUMBER}
 
                     trap 'docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true' EXIT
 
                     for i in $(seq 1 15); do
-                        if curl -fsS http://127.0.0.1:3000/; then
+                        if curl -fsS http://127.0.0.1:${APP_PORT}/; then
                             echo "Application health check passed"
                             exit 0
                         fi
@@ -70,7 +74,24 @@ pipeline {
                 '''
             }
         }
+
+        stage('push to docker hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+                        docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}
+                        docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
+                        docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}
+                        docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
+                    '''
+                }
+            }
+        }
+
     }
+
+    
 
     post {
         always {
