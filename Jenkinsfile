@@ -12,7 +12,7 @@ pipeline {
         IMAGE_NAME = 'jenkins-aws-docker-lab'
         CONTAINER_NAME = 'jenkins-ci-test'
         DEPLOY_USER = 'jenkins'
-        DEPLOY_HOST = '44.219.110.233' //elastic ip of ec2 instance
+        DEPLOY_HOST = '44.219.110.233' // elastic ip of ec2 instance
         APP_PORT = '3000'
         APP_NAME = 'node-cicd'
         DOCKERHUB_USERNAME = '354arjun'
@@ -90,42 +90,39 @@ pipeline {
             }
         }
 
-        stage('Deploy to AWS EC2'){
-            steps{
-                sshagent(credentials: ['deployement-instance-ssh']){
-                    sh ''' 
-                      
-                        ssh -o StrictHostKeyChecking=no -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" "IMAGE='${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}' PORT='${APP_PORT}'  APP='${APP_NAME}' bash -s" << 'REMOTE'
+        stage('Deploy to AWS EC2') {
+            steps {
+                sshagent(credentials: ['deployement-instance-ssh']) {
+                    
+                    sh """
+                        ssh -o StrictHostKeyChecking=no -o BatchMode=yes ${DEPLOY_USER}@${DEPLOY_HOST} bash -s << 'EOF'
+                            set -e
 
-                            set -e 
+                            IMAGE="${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}"
+                            PORT="${APP_PORT}"
+                            APP="${APP_NAME}"
 
-                            echo "Pulling Docker image: $IMAGE"
-                            docker pull "$IMAGE"
+                            echo "Pulling Docker image: \$IMAGE"
+                            docker pull "\$IMAGE"
 
-                            echo "Stopping and removing existing container: $APP"
-                            docker rm -f "$APP" 2>/dev/null || true
+                            echo "Stopping and removing existing container: \$APP"
+                            docker rm -f "\$APP" 2>/dev/null || true
 
-                            echo "Starting new container: $APP"
-                            docker run -d \
-                                --name "$APP" \
-                                --restart unless-stopped \
-                                -p 80:"${PORT}" \
-                                "$IMAGE"
+                            echo "Starting new container: \$APP"
+                            docker run -d \\
+                                --name "\$APP" \\
+                                --restart unless-stopped \\
+                                -p 80:"\$PORT" \\
+                                "\$IMAGE"
 
                             echo "Deployment completed successfully."
-
-                            docker ps --filter "name=$APP" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-
-                    REMOTE
-                    
-                    '''
+                            docker ps --filter "name=\$APP" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+                        EOF
+                    """
                 }
             }
         }
-
     }
-
-    
 
     post {
         always {
