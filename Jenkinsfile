@@ -95,13 +95,7 @@ pipeline {
                 sshagent(credentials: ['deployement-instance-ssh']){
                     sh ''' 
                       
-                        ssh -o StrictHostKeyChecking=no \
-                            -o BatchMode=yes \ 
-                            "$DEPLOY_USER@$DEPLOY_HOST" \ 
-                            "IMAGE='${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}' \
-                            PORT='${APP_PORT}' \
-                            APP='${APP_NAME}' \
-                            bash -s" << 'REMOTE'
+                        ssh -o StrictHostKeyChecking=no -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" "IMAGE='${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}' PORT='${APP_PORT}'  APP='${APP_NAME}' bash -s" << 'REMOTE'
 
                             set -e 
 
