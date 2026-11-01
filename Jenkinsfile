@@ -12,7 +12,7 @@ pipeline {
         IMAGE_NAME = 'jenkins-aws-docker-lab'
         CONTAINER_NAME = 'jenkins-ci-test'
         DEPLOY_USER = 'jenkins'
-        DEPLOY_HOST = '18.215.162.184'
+        DEPLOY_HOST = '98.81.244.42'
         APP_PORT = '3000'
         APP_NAME = 'node-cicd'
         DOCKERHUB_USERNAME = '354arjun'
