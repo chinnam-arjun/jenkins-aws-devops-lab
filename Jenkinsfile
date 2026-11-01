@@ -15,6 +15,7 @@ pipeline {
         DEPLOY_HOST = '18.215.162.184'
         APP_PORT = '3000'
         APP_NAME = 'node-cicd'
+        DOCKER_USERNAME = credentials('dockerhub-username')
     }
 
     stages {
@@ -84,6 +85,43 @@ pipeline {
                         docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
                         docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}
                         docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to AWS EC2'){
+            steps{
+                sshagent(credentials: ['deployement-instance-ssh']){
+                    sh ''' 
+                        ssh -o BatchMode=yes \
+                            "$DEPLOY_USER@$DEPLOY_HOST" \
+                            "IMAGE='${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}' \
+                            PORT='${APP_PORT}' \
+                            APP='${APP_NAME}' \
+                            bash -s" << 'REMOTE'
+
+                            set -e 
+
+                            echo "Pulling Docker image: $IMAGE"
+                            docker pull "$IMAGE"
+
+                            echo "Stopping and removing existing container: $APP"
+                            docker rm -f "$APP" 2>/dev/null || true
+
+                            echo "Starting new container: $APP"
+                            docker run -d \
+                                --name "$APP" \
+                                --restart unless-stopped \
+                                -p 80:"${PORT}" \
+                                "$IMAGE"
+
+                            echo "Deployment completed successfully."
+
+                            docker ps --filter "name=$APP" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+                    REMOTE
+                    
                     '''
                 }
             }
