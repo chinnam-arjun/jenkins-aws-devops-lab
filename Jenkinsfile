@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'aws-docker-agent'
+        label 'built-in'
     }
 
     options {
@@ -15,7 +15,7 @@ pipeline {
         DEPLOY_HOST = '18.215.162.184'
         APP_PORT = '3000'
         APP_NAME = 'node-cicd'
-        DOCKER_USERNAME = credentials('dockerhub-username')
+        DOCKERHUB_USERNAME = '354arjun'
     }
 
     stages {
@@ -96,7 +96,7 @@ pipeline {
                     sh ''' 
                         ssh -o BatchMode=yes \
                             "$DEPLOY_USER@$DEPLOY_HOST" \
-                            "IMAGE='${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}' \
+                            "IMAGE='${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${BUILD_NUMBER}' \
                             PORT='${APP_PORT}' \
                             APP='${APP_NAME}' \
                             bash -s" << 'REMOTE'
