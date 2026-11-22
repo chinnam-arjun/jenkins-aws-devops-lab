@@ -17,7 +17,8 @@ pipeline {
         APP_NAME = 'node-cicd'
         DOCKERHUB_USERNAME = '354arjun'
         AWS_REGION = 'us-east-1'
-        AWS_ACCOUNT_ID = '084149021663' // Replace with your AWS
+        AWS_ACCOUNT_ID = '084149021663'
+        ECR_REPOSITORY = 'jenkins-pipeline-production-app'
     }
 
     stages {
@@ -96,8 +97,8 @@ pipeline {
             steps {
                 sh '''
                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-                    docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}:${BUILD_NUMBER}
-                    docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}:${BUILD_NUMBER}
+                    docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${BUILD_NUMBER}
+                    docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${BUILD_NUMBER}
                 
                  '''
             }
