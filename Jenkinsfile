@@ -16,6 +16,8 @@ pipeline {
         APP_PORT = '3000'
         APP_NAME = 'node-cicd'
         DOCKERHUB_USERNAME = '354arjun'
+        AWS_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID = '084149021663' // Replace with your AWS
     }
 
     stages {
@@ -87,6 +89,17 @@ pipeline {
                         docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
                     '''
                 }
+            }
+        }
+
+        stage('push to ECR'){
+            steps {
+                sh '''
+                    aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                    docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}:${BUILD_NUMBER}
+                    docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                
+                 '''
             }
         }
 
